@@ -1,9 +1,10 @@
-package com.atguigu.mapreduce.wordcount;
+package com.atguigu.mapreduce.yasuo;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.compress.*;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
@@ -11,9 +12,18 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import java.io.IOException;
 
 public class WordCountDriver {
-    public static void main(String[] args) throws IOException, InterruptedException, ClassNotFoundException {
+
+    public static void main(String[] args) throws IOException, ClassNotFoundException, InterruptedException {
+
         // 1 获取job
         Configuration conf = new Configuration();
+
+        // 开启map端输出压缩
+        conf.setBoolean("mapreduce.map.output.compress", true);
+
+        // 设置map端输出压缩方式
+        conf.setClass("mapreduce.map.output.compress.codec", SnappyCodec.class, CompressionCodec.class);
+
         Job job = Job.getInstance(conf);
 
         // 2 设置jar包路径
@@ -32,8 +42,18 @@ public class WordCountDriver {
         job.setOutputValueClass(IntWritable.class);
 
         // 6 设置输入路径和输出路径
-        FileInputFormat.setInputPaths(job, new Path("D:\\BrowerDownload\\mapreduceExp\\wordCount\\input"));
-        FileOutputFormat.setOutputPath(job, new Path("D:\\BrowerDownload\\mapreduceExp\\wordCount\\output"));
+        FileInputFormat.setInputPaths(job, new Path("D:\\input\\inputword"));
+        FileOutputFormat.setOutputPath(job, new Path("D:\\hadoop\\output888"));
+
+
+        // 设置reduce端输出压缩开启
+        FileOutputFormat.setCompressOutput(job, true);
+
+        // 设置压缩的方式
+//        FileOutputFormat.setOutputCompressorClass(job, BZip2Codec.class);
+//	    FileOutputFormat.setOutputCompressorClass(job, GzipCodec.class);
+	    FileOutputFormat.setOutputCompressorClass(job, DefaultCodec.class);
+
 
         // 7 提交job
         boolean result = job.waitForCompletion(true);
